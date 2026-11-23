@@ -1,4 +1,4 @@
-from src.models import Apartment, Bill, Parameters, Tenant, Transfer
+from src.models import Apartment, ApartmentSettlement, Bill, Parameters, Tenant, Transfer
 
 
 class Manager:
@@ -58,6 +58,31 @@ class Manager:
                 and (month is None or bill.settlement_month == month)
             ),
             0.0,
+        )
+
+    def create_apartment_settlement(self, apartment_key: str, year: int, month: int) -> ApartmentSettlement | None:
+        """Rozliczenie mieszkania za konkretny miesiąc.
+
+        Zwraca None, gdy mieszkanie nie istnieje.
+        Rzuca ValueError, gdy rok lub miesiąc jest nieprawidłowy albo nie został podany.
+        """
+        if year is None or month is None:
+            raise ValueError("Rozliczenie wymaga podania roku i miesiąca")
+
+        total_due = self.get_apartment_costs(apartment_key, year, month)
+        if total_due is None:
+            return None
+
+        total_transfers = 0.0  # przelewy uwzględnimy w kolejnym kroku
+
+        return ApartmentSettlement(
+            key=f"{apartment_key}-{year}-{month:02d}",
+            apartment=apartment_key,
+            year=year,
+            month=month,
+            total_due_pln=total_due,
+            total_transfers_pln=total_transfers,
+            balance_pln=total_transfers - total_due,
         )
 
     @staticmethod

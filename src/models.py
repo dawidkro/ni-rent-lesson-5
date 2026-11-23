@@ -84,12 +84,13 @@ class Bill(BaseModel):
 
 
 class ApartmentSettlement(BaseModel):
+    key: str                          # np. 'apart-polanka-2025-01', używany w TenantSettlement.apartment_settlement
     apartment: str
     month: int
     year: int
-    total_rent_pln: float
-    total_bills_pln: float
-    total_due_pln: float
+    total_due_pln: float              # suma rachunków mieszkania w danym miesiącu
+    total_transfers_pln: float = 0.0  # suma przelewów (uwzględnimy w kolejnym kroku)
+    balance_pln: float = 0.0          # bilans = total_transfers_pln - total_due_pln
 
 
 class TenantSettlement(BaseModel):
