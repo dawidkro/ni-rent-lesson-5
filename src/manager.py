@@ -24,12 +24,28 @@ class Manager:
                 return False
         return True
 
-    def get_apartment_costs(self, apartment_key: str, year: int, month: int) -> float | None:
-        """Suma rachunków (bills) mieszkania za dany okres rozliczeniowy.
+    def get_apartment_costs(
+        self,
+        apartment_key: str,
+        year: int | None = None,
+        month: int | None = None,
+    ) -> float | None:
+        """Suma rachunków (bills) mieszkania za wskazany okres.
+
+        - podany rok i miesiąc -> rachunki z tego miesiąca,
+        - tylko rok            -> rachunki z całego roku,
+        - bez roku i miesiąca  -> rachunki z całej historii,
+        - tylko miesiąc        -> ten miesiąc we wszystkich latach.
 
         Zwraca None, gdy mieszkanie nie istnieje, oraz 0.0, gdy mieszkanie
-        istnieje, ale nie ma rachunków w podanym roku i miesiącu.
+        istnieje, ale nie ma rachunków w podanym okresie.
+        Rzuca ValueError przy nieprawidłowym roku lub miesiącu (np. 13).
         """
+        if year is not None and not self._is_int(year, min_value=1):
+            raise ValueError(f"Nieprawidłowy rok: {year!r} (oczekiwano liczby całkowitej >= 1)")
+        if month is not None and not self._is_int(month, min_value=1, max_value=12):
+            raise ValueError(f"Nieprawidłowy miesiąc: {month!r} (oczekiwano liczby całkowitej 1-12)")
+
         if apartment_key not in self.apartments:
             return None
 
@@ -38,8 +54,19 @@ class Manager:
                 bill.amount_pln
                 for bill in self.bills
                 if bill.apartment == apartment_key
-                and bill.settlement_year == year
-                and bill.settlement_month == month
+                and (year is None or bill.settlement_year == year)
+                and (month is None or bill.settlement_month == month)
             ),
             0.0,
         )
+
+    @staticmethod
+    def _is_int(value, min_value: int | None = None, max_value: int | None = None) -> bool:
+        # bool dziedziczy po int (True == 1), więc odrzucamy go jawnie
+        if not isinstance(value, int) or isinstance(value, bool):
+            return False
+        if min_value is not None and value < min_value:
+            return False
+        if max_value is not None and value > max_value:
+            return False
+        return True
