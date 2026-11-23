@@ -23,3 +23,23 @@ class Manager:
             if tenant.apartment not in self.apartments:
                 return False
         return True
+
+    def get_apartment_costs(self, apartment_key: str, year: int, month: int) -> float | None:
+        """Suma rachunków (bills) mieszkania za dany okres rozliczeniowy.
+
+        Zwraca None, gdy mieszkanie nie istnieje, oraz 0.0, gdy mieszkanie
+        istnieje, ale nie ma rachunków w podanym roku i miesiącu.
+        """
+        if apartment_key not in self.apartments:
+            return None
+
+        return sum(
+            (
+                bill.amount_pln
+                for bill in self.bills
+                if bill.apartment == apartment_key
+                and bill.settlement_year == year
+                and bill.settlement_month == month
+            ),
+            0.0,
+        )
