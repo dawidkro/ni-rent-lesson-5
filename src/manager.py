@@ -1,4 +1,4 @@
-from src.models import Apartment, ApartmentSettlement, Bill, Parameters, Tenant, Transfer
+from src.models import Apartment, ApartmentSettlement, Bill, Parameters, Tenant, TenantSettlement, Transfer
 
 
 class Manager:
@@ -84,6 +84,35 @@ class Manager:
             total_transfers_pln=total_transfers,
             balance_pln=total_transfers - total_due,
         )
+
+    def create_tenants_settlements(self, apartment_settlement: ApartmentSettlement) -> list[TenantSettlement]:
+        """Rozliczenia najemców na podstawie rozliczenia mieszkania.
+
+        Koszty mieszkania dzielimy po równo między najemców przypisanych
+        do tego mieszkania. Brak najemców -> pusta lista (nie tworzymy rozliczeń).
+        """
+        tenant_keys = [
+            key for key, tenant in self.tenants.items()
+            if tenant.apartment == apartment_settlement.apartment
+        ]
+        if not tenant_keys:
+            return []
+
+        share = apartment_settlement.total_due_pln / len(tenant_keys)
+        total_transfers = 0.0  # przelewy uwzględnimy w kolejnym kroku
+
+        return [
+            TenantSettlement(
+                tenant=key,
+                apartment_settlement=apartment_settlement.key,
+                year=apartment_settlement.year,
+                month=apartment_settlement.month,
+                total_due_pln=share,
+                total_transfers_pln=total_transfers,
+                balance_pln=total_transfers - share,
+            )
+            for key in tenant_keys
+        ]
 
     @staticmethod
     def _is_int(value, min_value: int | None = None, max_value: int | None = None) -> bool:

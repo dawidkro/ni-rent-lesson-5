@@ -94,11 +94,10 @@ class ApartmentSettlement(BaseModel):
 
 
 class TenantSettlement(BaseModel):
-    tenant: str
-    apartment_settlement: str
+    tenant: str                       # klucz najemcy, np. 'tenant-1' (tak jak w Transfer.tenant)
+    apartment_settlement: str         # ApartmentSettlement.key
     month: int
     year: int
-    rent_pln: float
-    bills_pln: float
-    total_due_pln: float
-    balance_pln: float
+    total_due_pln: float              # udział najemcy w kosztach mieszkania
+    total_transfers_pln: float = 0.0  # suma przelewów najemcy (uwzględnimy w kolejnym kroku)
+    balance_pln: float = 0.0          # bilans = total_transfers_pln - total_due_pln
